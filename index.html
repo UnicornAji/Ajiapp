@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Karácsonyi Kívánságlista</title>
+  <title>Ezt szeretném ajándékba</title>
   
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -31,25 +31,6 @@
       z-index: 0;
     }
     
-    .perspective-1000 { perspective: 1000px; }
-    .gift-card {
-      transform-style: preserve-3d;
-      transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-      position: relative;
-      width: 100%;
-      height: 100%;
-    }
-    .gift-card.unwrapped { transform: rotateY(180deg); }
-    .gift-face {
-      backface-visibility: hidden;
-      -webkit-backface-visibility: hidden;
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-    }
-    .gift-back { transform: rotateY(180deg); }
-    
     ::-webkit-scrollbar { width: 8px; }
     ::-webkit-scrollbar-track { background: #450a0a; }
     ::-webkit-scrollbar-thumb { background: #166534; border-radius: 4px; }
@@ -61,26 +42,73 @@
   <!-- Hópelyhek -->
   <div id="snowflakes-container" class="fixed inset-0 pointer-events-none z-0 overflow-hidden" aria-hidden="true"></div>
 
-  <!-- Foglalási Modal -->
-  <div id="claim-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+  <!-- 1. Lépés: Név megadása / Foglalási Modal -->
+  <div id="claim-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
     <div class="bg-red-900 border-2 border-green-600 rounded-xl shadow-2xl max-w-md w-full p-6 text-white transform transition-all">
       <h3 class="text-2xl font-bold mb-2 flex items-center gap-2 text-yellow-400">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/><path d="M12 5 9.04 7.96a2.17 2.17 0 0 0 0 3.08v0c.82.82 2.13.85 3 .07l2.07-1.9a2.82 2.82 0 0 1 3.79 0l2.96 2.66"/><path d="m18 15-2-2"/><path d="m15 18-2-2"/></svg>
         Ajándék lefoglalása
       </h3>
       <p class="mb-6 text-red-100">
-        Biztosan le akarod foglalni ezt: <strong id="modal-gift-title" class="text-white"></strong>?
+        Biztosan le szeretnéd foglalni ezt: <strong id="modal-gift-title" class="text-white"></strong>?
       </p>
       <form id="claim-form">
         <div class="mb-4">
           <label class="block text-sm font-medium mb-1 text-red-200">Kérlek, add meg a neved:</label>
-          <input type="text" id="claimer-name" required class="w-full px-4 py-2 bg-red-950 border border-red-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-green-500 placeholder-red-400/50" placeholder="Pl. Anya, Apa, Pisti..." />
+          <input type="text" id="claimer-name" required class="w-full px-4 py-2.5 bg-red-950 border border-red-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-green-500 placeholder-red-400/50" placeholder="Pl. Anya, Apa, Pisti..." />
         </div>
         <div class="flex justify-end gap-3 mt-6">
-          <button type="button" onclick="closeClaimModal()" class="px-4 py-2 rounded-md bg-red-800 hover:bg-red-700 text-white transition-colors">Mégsem</button>
-          <button type="submit" id="modal-submit-btn" class="px-6 py-2 rounded-md bg-green-600 hover:bg-green-500 text-white font-bold transition-colors shadow-lg shadow-green-900/50">Lefoglalom!</button>
+          <button type="button" onclick="closeClaimModal()" class="px-4 py-2 rounded-lg bg-red-800 hover:bg-red-700 text-white transition-colors">Mégsem</button>
+          <button type="submit" id="modal-submit-btn" class="px-6 py-2 rounded-lg bg-green-600 hover:bg-green-500 text-white font-bold transition-colors shadow-lg shadow-green-900/50">Lefoglalom!</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- 2. Lépés: Sikeres foglalás & Link másolása Modal -->
+  <div id="link-copy-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-md p-4">
+    <div class="bg-slate-900 border-2 border-yellow-500 rounded-2xl shadow-2xl max-w-lg w-full p-6 sm:p-8 text-white relative">
+      <div class="text-center mb-6">
+        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-900/60 border border-green-500 text-green-400 mb-3 text-3xl">
+          🎁
+        </div>
+        <h3 class="text-2xl font-bold text-yellow-400">Köszönöm a foglalást!</h3>
+        <p class="text-slate-300 text-sm mt-1">Itt találod a lefoglalt termék közvetlen vásárlási linkjét:</p>
+      </div>
+
+      <div class="space-y-3">
+        <div class="relative flex items-center">
+          <input 
+            type="text" 
+            id="copy-link-input" 
+            readonly 
+            class="w-full pr-12 pl-4 py-3 bg-slate-950 border border-slate-700 rounded-xl text-yellow-200 text-sm focus:outline-none font-mono selection:bg-yellow-500 selection:text-black"
+          />
+          <button 
+            type="button" 
+            onclick="copyProductLink()" 
+            title="Link másolása"
+            class="absolute right-2 p-2 text-slate-400 hover:text-yellow-400 hover:bg-slate-800 rounded-lg transition-colors"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+          </button>
+        </div>
+
+        <button 
+          type="button" 
+          id="copy-action-btn"
+          onclick="copyProductLink()" 
+          class="w-full py-3.5 bg-yellow-500 hover:bg-yellow-400 text-slate-950 font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 text-base cursor-pointer"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+          Link kimásolása
+        </button>
+
+        <!-- Sikeres visszajelzés szalag -->
+        <div id="copy-success-badge" class="hidden text-center py-2 px-4 bg-green-950/80 border border-green-600 rounded-lg text-green-300 font-semibold text-sm animate-pulse">
+          ✓ Sikeresen kimásoltad! Az ablak mindjárt bezáródik...
+        </div>
+      </div>
     </div>
   </div>
 
@@ -92,7 +120,9 @@
         <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 text-red-500 drop-shadow-[0_0_15px_rgba(239,68,68,0.5)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
         <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 animate-[spin_10s_linear_infinite_reverse]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="2" y1="12" x2="22" y2="12"/><line x1="12" y1="2" x2="12" y2="22"/><path d="m20 16-4-4 4-4"/><path d="m4 8 4 4-4 4"/><path d="m16 4-4 4-4-4"/><path d="m8 20 4-4 4 4"/></svg>
       </div>
-      <h1 class="text-4xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-b from-yellow-200 to-yellow-600 font-serif drop-shadow-lg mb-4">Családi Kívánságlista</h1>
+      <h1 class="text-4xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-b from-yellow-200 to-yellow-600 font-serif drop-shadow-lg mb-4">
+        Ezt szeretném ajándékba
+      </h1>
       <p class="text-red-200 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed backdrop-blur-sm bg-black/20 p-4 rounded-xl border border-red-800/50">
         Böngészd át az ajándékokat! Ha megtetszik valami és megvennéd, nyomj a "Lefoglalom" gombra, hogy a többiek lássák, elkelt.
       </p>
@@ -108,52 +138,17 @@
     <div id="empty-state" class="hidden text-center py-20 bg-black/30 rounded-2xl border border-red-800/50 backdrop-blur-sm">
       <svg xmlns="http://www.w3.org/2000/svg" class="w-16 h-16 mx-auto text-red-800 mb-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
       <h2 class="text-2xl font-bold text-red-300">Még nincsenek ajándékok a listán</h2>
-      <p class="text-red-400 mt-2">Kattints a lenti gombra és adj hozzá egyet!</p>
     </div>
 
     <div id="gifts-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12 hidden"></div>
   </main>
 
-  <!-- Hozzáadás Szekció -->
-  <div class="relative z-10 max-w-2xl mx-auto mt-24 px-4">
-    <button id="show-add-btn" onclick="toggleAddForm(true)" class="w-full flex items-center justify-center gap-2 py-4 bg-red-800/80 hover:bg-red-700 backdrop-blur-md border border-red-600 rounded-xl font-bold text-yellow-100 transition-all shadow-xl hover:shadow-red-900/50">
-      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-      Új ajándék hozzáadása a listához
-    </button>
-
-    <div id="add-form-card" class="hidden bg-slate-900/90 backdrop-blur-xl p-6 md:p-8 rounded-2xl border-2 border-red-800 shadow-2xl relative overflow-hidden">
-      <h2 class="text-2xl font-bold text-yellow-400 mb-6 flex items-center gap-2">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Szeretnék valamit kérni
-      </h2>
-      <form id="add-gift-form" class="space-y-4 relative z-10">
-        <div>
-          <label class="block text-sm font-medium text-red-200 mb-1">Ajándék megnevezése *</label>
-          <input type="text" id="gift-title" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-yellow-500" placeholder="Pl. Okosóra, Kedvenc könyv..." />
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-red-200 mb-1">Webshop Link (URL) *</label>
-          <input type="url" id="gift-link" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-yellow-500" placeholder="https://..." />
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-red-200 mb-1">Kép Link (Opcionális)</label>
-          <input type="url" id="gift-image" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-yellow-500" placeholder="Kép URL címe" />
-        </div>
-        <div class="flex gap-4 pt-4">
-          <button type="button" onclick="toggleAddForm(false)" class="flex-1 py-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-medium transition-colors">Mégsem</button>
-          <button type="submit" id="submit-gift-btn" class="flex-[2] py-3 rounded-lg bg-green-600 hover:bg-green-500 text-white font-bold transition-colors shadow-lg flex items-center justify-center gap-2">Hozzáadás a listához</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
   <script>
     // ==========================================
-    // 1. SUPABASE BEÁLLÍTÁSOK (VS Code-ban írd át!)
+    // SUPABASE BEÁLLÍTÁSOK
     // ==========================================
     const SUPABASE_URL = 'https://vjpcqosihfrgjrqpssrk.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZqcGNxb3NpaGZyZ2pycXBzc3JrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMzODQxNjgsImV4cCI6MjEwODk2MDE2OH0.nI0u6H_0JtBj95rvneMTzuK5dr_7nDq96uuvrqsYWqI';
-    const ADMIN_EMAIL = 'unicornmarketingdesign@gmail.com'; 
 
     let supabaseClient = null;
     let giftsList = [];
@@ -176,12 +171,6 @@
     })();
 
     function initApp() {
-      if (!SUPABASE_URL || SUPABASE_URL === 'IDE_MASOLD_A_PROJECT_URL_T') {
-        alert("Figyelem: A Supabase kulcsok még nincsenek beállítva a kódban!");
-        document.getElementById('loading-spinner').classList.add('hidden');
-        return;
-      }
-
       try {
         supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         loadGifts();
@@ -204,8 +193,7 @@
       try {
         const { data, error } = await supabaseClient
           .from('gifts')
-          .select('*')
-          .order('id', { ascending: false });
+          .select('*');
 
         if (error) {
           console.error("Adatbázis hiba:", error);
@@ -213,7 +201,14 @@
           return;
         }
 
-        giftsList = data || [];
+        // Rendezés: elérhetőek elöl (is_claimed = false), lefoglaltak a végén; azon belül id szerint csökkenő
+        giftsList = (data || []).sort((a, b) => {
+          if (a.is_claimed === b.is_claimed) {
+            return b.id - a.id;
+          }
+          return a.is_claimed ? 1 : -1;
+        });
+
         renderGifts();
       } catch (err) {
         console.error("Hálózati hiba:", err);
@@ -314,6 +309,7 @@
       });
     }
 
+    // 1. Lépés: Név modal megnyitása
     function handleClaimClick(giftId) {
       const gift = giftsList.find(g => String(g.id) === String(giftId));
       if (!gift || gift.is_claimed) return;
@@ -329,6 +325,7 @@
       document.getElementById('claim-modal').classList.add('hidden');
     }
 
+    // Foglalás rögzítése & Link modal megnyitása
     document.getElementById('claim-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       const name = document.getElementById('claimer-name').value.trim();
@@ -351,15 +348,10 @@
         if (error) {
           alert('Hiba történt a foglaláskor: ' + error.message);
         } else {
-          if (ADMIN_EMAIL && ADMIN_EMAIL !== 'ide_ird_az_email_cimed@gmail.com') {
-            const subject = encodeURIComponent(`Karácsonyi Ajándék Lefoglalva: ${activeClaimGift.title}`);
-            const body = encodeURIComponent(
-              `Kedves Család!\n\n${name} lefoglalta ezt az ajándékot a karácsonyi kívánságlistáról:\n\n🎁 ${activeClaimGift.title}\n🔗 Link: ${activeClaimGift.product_url}\n\nKellemes Ünnepeket!`
-            );
-            window.location.href = `mailto:${ADMIN_EMAIL}?subject=${subject}&body=${body}`;
-          }
+          const productLink = activeClaimGift.product_url;
           closeClaimModal();
           loadGifts();
+          openLinkCopyModal(productLink);
         }
       } catch (err) {
         alert('Váratlan hiba: ' + err.message);
@@ -369,60 +361,50 @@
       }
     });
 
-    function toggleAddForm(show) {
-      const showBtn = document.getElementById('show-add-btn');
-      const formCard = document.getElementById('add-form-card');
-      if (show) {
-        showBtn.classList.add('hidden');
-        formCard.classList.remove('hidden');
-      } else {
-        formCard.classList.add('hidden');
-        showBtn.classList.remove('hidden');
-        document.getElementById('add-gift-form').reset();
-      }
+    // 2. Lépés: Link modal megnyitása
+    function openLinkCopyModal(link) {
+      const input = document.getElementById('copy-link-input');
+      const badge = document.getElementById('copy-success-badge');
+      const actionBtn = document.getElementById('copy-action-btn');
+      
+      input.value = link || '';
+      badge.classList.add('hidden');
+      actionBtn.classList.remove('hidden');
+      
+      document.getElementById('link-copy-modal').classList.remove('hidden');
     }
 
-    document.getElementById('add-gift-form').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const title = document.getElementById('gift-title').value.trim();
-      const link = document.getElementById('gift-link').value.trim();
-      let image = document.getElementById('gift-image').value.trim();
-
-      if (!title || !link) return;
-      if (!image) {
-        image = 'https://images.unsplash.com/photo-1543589077-47d81606c1bf?auto=format&fit=crop&q=80&w=600';
-      }
-
-      const submitBtn = document.getElementById('submit-gift-btn');
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'Mentés...';
+    // Link kimásolása & automatikus bezárás
+    async function copyProductLink() {
+      const input = document.getElementById('copy-link-input');
+      const textToCopy = input.value;
+      const badge = document.getElementById('copy-success-badge');
+      const actionBtn = document.getElementById('copy-action-btn');
 
       try {
-        const { error } = await supabaseClient
-          .from('gifts')
-          .insert([
-            {
-              title: title,
-              product_url: link,
-              image_url: image,
-              is_claimed: false,
-              claimed_by_name: null
-            }
-          ]);
-
-        if (error) {
-          alert('Hiba a hozzáadás során: ' + error.message);
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(textToCopy);
         } else {
-          toggleAddForm(false);
-          loadGifts();
+          input.select();
+          input.setSelectionRange(0, 99999);
+          document.execCommand('copy');
         }
+
+        // Visszajelzés
+        badge.classList.remove('hidden');
+        actionBtn.classList.add('hidden');
+
+        // 1.8 másodperc múlva automatikus bezárás
+        setTimeout(() => {
+          document.getElementById('link-copy-modal').classList.add('hidden');
+        }, 1800);
+
       } catch (err) {
-        alert('Hiba: ' + err.message);
-      } finally {
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Hozzáadás a listához';
+        // Fallback manuális kijelölésre
+        input.select();
+        alert('A link ki van jelölve, másold ki a vágólapra!');
       }
-    });
+    }
 
     initApp();
   </script>
